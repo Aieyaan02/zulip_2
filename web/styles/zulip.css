@@ -727,6 +727,12 @@ input:not(.input-element) {
     &[type="color"] {
         font-size: inherit;
         height: 1.4em;
+        background-color: var(--color-background-legacy-input);
+        border-color: var(--color-border-legacy-input);
+
+        &:focus {
+            border-color: var(--color-border-legacy-input-focus);
+        }
     }
 }
 
@@ -2235,7 +2241,8 @@ body:not(.spectator-view) {
            vertically centered properly. */
         line-height: 1.214;
 
-        .channel-privacy-type-icon {
+        .channel-privacy-type-icon,
+        .zulip-icon-deactivated-circle {
             grid-area: privacy-icon;
             line-height: 1.214;
             font-size: 0.93em;
@@ -2244,6 +2251,7 @@ body:not(.spectator-view) {
             regardless of the height. */
             width: 0.93em;
             padding-right: 5px;
+            padding-left: 0;
             /* Override the [data-tippy-root] style in
                `tooltips.css`.
                Because we are manually holding icon
@@ -2460,7 +2468,8 @@ body:not(.spectator-view) {
 
 .default-language-display,
 .empty-topic-display,
-.empty-topic-placeholder-display::placeholder {
+.empty-topic-placeholder-display::placeholder,
+.drafts-unknown-msg-header-field {
     font-style: italic;
 }
 

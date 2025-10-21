@@ -7,16 +7,15 @@ import {Steps, TabItem, Tabs} from "@astrojs/starlight/components";
 import FlattenedSteps from "../../components/FlattenedSteps.astro";
 import ZulipNote from "../../components/ZulipNote.astro";
 import ZulipTip from "../../components/ZulipTip.astro";
-
-import ImportGetYourOrganizationStarted from "./include/_ImportGetYourOrganizationStarted.mdx";
-import ImportHowUsersWillLogIn from "./include/_ImportHowUsersWillLogIn.mdx";
-import ImportIntoASelfHostedServerDescription from "./include/_ImportIntoASelfHostedServerDescription.mdx";
-import ImportIntoASelfHostedServerInstructions from "./include/_ImportIntoASelfHostedServerInstructions.mdx";
-import ImportIntoAZulipCloudOrganization from "./include/_ImportIntoAZulipCloudOrganization.mdx";
-import ImportSelfHostedServerTips from "./include/_ImportSelfHostedServerTips.mdx";
-import ImportWorkspaceToZulip from "./include/_ImportWorkspaceToZulip.mdx";
-import ImportYourDataIntoZulip from "./include/_ImportYourDataIntoZulip.mdx";
-import ImportZulipCloudOrganizationWarning from "./include/_ImportZulipCloudOrganizationWarning.mdx";
+import ImportGetYourOrganizationStarted from "../include/_ImportGetYourOrganizationStarted.mdx";
+import ImportHowUsersWillLogIn from "../include/_ImportHowUsersWillLogIn.mdx";
+import ImportIntoASelfHostedServerDescription from "../include/_ImportIntoASelfHostedServerDescription.mdx";
+import ImportIntoASelfHostedServerInstructions from "../include/_ImportIntoASelfHostedServerInstructions.mdx";
+import ImportIntoAZulipCloudOrganization from "../include/_ImportIntoAZulipCloudOrganization.mdx";
+import ImportSelfHostedServerTips from "../include/_ImportSelfHostedServerTips.mdx";
+import ImportWorkspaceToZulip from "../include/_ImportWorkspaceToZulip.mdx";
+import ImportYourDataIntoZulip from "../include/_ImportYourDataIntoZulip.mdx";
+import ImportZulipCloudOrganizationWarning from "../include/_ImportZulipCloudOrganizationWarning.mdx";
 
 <ImportWorkspaceToZulip />
 
@@ -76,13 +75,13 @@ in order to export direct message data.
   1. [Create a new Slack app](https://api.slack.com/apps). Choose the "From
      scratch" creation option.
   1. [Create a
-     bot user](https://api.slack.com/authentication/basics#scopes),
+     bot user](https://docs.slack.dev/app-management/quickstart-app-settings/#creating),
      following the instructions to add the following OAuth scopes to your bot:
      * `emoji:read`
      * `users:read`
      * `users:read.email`
      * `team:read`
-  1. [Install your new app](https://api.slack.com/authentication/basics#installing)
+  1. [Install your new app](https://docs.slack.dev/app-management/quickstart-app-settings/#installing)
      to your Slack workspace.
   1. You will immediately see a **Bot User OAuth Token**, which is a long
      string of numbers and characters starting with `xoxb-`. Copy this token. It

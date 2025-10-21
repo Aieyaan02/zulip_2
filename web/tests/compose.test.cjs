@@ -130,7 +130,7 @@ const social = {
     can_send_message_group: 2,
     topics_policy: "inherit",
 };
-stream_data.add_sub(social);
+stream_data.add_sub_for_tests(social);
 
 const nobody = make_user_group({
     name: "role:nobody",
@@ -316,9 +316,10 @@ test_ui("send_message", ({override, override_rewire, mock_template}) => {
 
         override_rewire(echo, "try_deliver_locally", (message_request) => {
             const local_id_float = 123.04;
-            return echo.insert_local_message(message_request, local_id_float, (messages) => {
-                assert.equal(messages[0].timestamp, fake_now);
-                return messages;
+            return echo.insert_local_message(message_request, local_id_float, (messages_data) => {
+                assert.equal(messages_data.type, "local_message");
+                assert.equal(messages_data.raw_messages[0].timestamp, fake_now);
+                return messages_data.raw_messages;
             });
         });
 
@@ -851,21 +852,25 @@ test_ui("on_events", ({override, override_rewire}) => {
     })();
 });
 
-test_ui("DM policy disabled", ({override, override_rewire}) => {
-    // Disable dms in the organisation
+test_ui("DM policy disabled", ({override}) => {
+    // Disable sending direct messages in the organisation
     override(realm, "realm_direct_message_permission_group", nobody.id);
     override(realm, "realm_direct_message_initiator_group", everyone.id);
-    let reply_disabled = false;
-    override_rewire(compose_closed_ui, "update_reply_button_state", (disabled = false) => {
-        reply_disabled = disabled;
-    });
+    // For no specified direct message recipient, the "Message X"button
+    // is not disabled
+    override(narrow_state, "pm_ids_string", () => undefined);
+    let reply_disabled = compose_closed_ui.should_disable_compose_reply_button_for_direct_message();
+    assert.ok(!reply_disabled);
     // For single bot recipient, Bot, the "Message X" button is not disabled
     override(narrow_state, "pm_ids_string", () => "33");
-    compose_closed_ui.update_buttons_for_private();
+    reply_disabled = compose_closed_ui.should_disable_compose_reply_button_for_direct_message();
     assert.ok(!reply_disabled);
     // For human user, Alice, the "Message X" button is disabled
-    override(narrow_state, "pm_ids_string", () => "31");
-    compose_closed_ui.update_buttons_for_private();
+    override(narrow_state, "pm_ids_string", () => "31,33");
+    reply_disabled = compose_closed_ui.should_disable_compose_reply_button_for_direct_message();
+    assert.ok(reply_disabled);
+    // For human user and bot user, the "Message X" button is disabled
+    reply_disabled = compose_closed_ui.should_disable_compose_reply_button_for_direct_message();
     assert.ok(reply_disabled);
 });
 
