@@ -20,6 +20,11 @@ from zerver.models import Realm
 from zerver.models.realms import get_realm
 from zerver.views.documentation import add_api_url_context
 
+
+def get_canonical_url(path: str) -> str:
+    return f'<link rel="canonical" href="https://zulip.com{path}" />'
+
+
 if TYPE_CHECKING:
     from django.test.client import _MonkeyPatchedWSGIResponse as TestHttpResponse
 
@@ -48,6 +53,7 @@ class DocPageTest(ZulipTestCase):
             "/devtools/",
             "/emails/",
             "/errors/",
+            "/help",
             "/integrations/",
         ]:
             if url.startswith(prefix):
@@ -69,6 +75,11 @@ class DocPageTest(ZulipTestCase):
 
         if url.startswith("/attribution/"):
             allow_robots = False
+
+        # When a raw MDX file is being fetched, the meta tag to
+        # disallow robots will be absent.
+        if url in ["/help/status-and-availability?raw", "/help/?raw", "/help?raw"]:
+            allow_robots = True
 
         result = self.get_doc(url, subdomain=subdomain)
         self.print_msg_if_error(url, result)
@@ -212,6 +223,8 @@ class DocPageTest(ZulipTestCase):
             with mock.patch(
                 "zerver.lib.html_to_text.html_to_text", return_value="This is an API doc"
             ) as m:
+                # Test that canonical URL points to zulip.com
+                expected_strings.append(get_canonical_url(url))
                 self._test(
                     url=url,
                     expected_strings=expected_strings,
@@ -242,6 +255,49 @@ class DocPageTest(ZulipTestCase):
         self._test("/devlogin/", ["Normal users"])
         self._test("/devtools/", ["Useful development URLs"])
         self._test("/emails/", ["Manually generate most emails"])
+
+    def test_dev_help_default_page_endpoints(self) -> None:
+        # View on Zulip.com and View source URLs should be visible.
+        self._test(
+            "/help/status-and-availability",
+            [
+                'href="https://zulip.com/help/status-and-availability"',
+                'href="/help/status-and-availability?raw"',
+            ],
+        )
+
+        # Raw MDX file should be shown when `?raw` is present.
+        self._test(
+            "/help/status-and-availability?raw",
+            ["---", "title: Status and availability", "### Set a status"],
+        )
+
+        self._test(
+            "/help/nonexistent-page-that-does-not-exist",
+            ["This is not a valid help path and not a valid MDX file"],
+        )
+
+        # `?raw` should have no effect when the page does not exist
+        self._test(
+            "/help/nonexistent-page-that-does-not-exist?raw",
+            ["This is not a valid help path and not a valid MDX file"],
+        )
+
+        # Root /help and /help/ is a special case without subpath.
+        self._test("/help/?raw", ["---", "title: Zulip help center"])
+        self._test("/help?raw", ["---", "title: Zulip help center"])
+
+        with (
+            mock.patch("builtins.open", side_effect=OSError("File read error")),
+            self.assertLogs("django.request", level="ERROR") as m,
+        ):
+            result = self.client_get("/help/status-and-availability?raw")
+            self.assertEqual(result.status_code, 500)
+            self.assertIn("Error reading MDX file", result.content.decode())
+            self.assertEqual(
+                m.output,
+                ["ERROR:django.request:Internal Server Error: /help/status-and-availability"],
+            )
 
     def test_error_endpoints(self) -> None:
         self._test("/errors/404/", ["Page not found"])
@@ -357,6 +413,14 @@ class DocPageTest(ZulipTestCase):
             not in (image_path := os.path.relpath(os.path.join(root, file), directory))
         }
 
+        # The integration docs and the screenshot images are in different repos
+        # for the PythonAPIIntegrations, so we cannot avoid going out of sync
+        # when adding/deleting screenshots.
+        # Use this set to temporarily add exclusions to this test.
+        exception_images: set[str] = {"jira-plugin/001.png", "git/001.png"}
+        images_in_dir.update(exception_images)
+        images_in_docs.update(exception_images)
+
         self.assertEqual(
             images_in_dir,
             images_in_docs,
@@ -381,7 +445,7 @@ class DocPageTest(ZulipTestCase):
         url = "/integrations/doc/github"
         title = '<meta property="og:title" content="GitHub | Zulip integrations" />'
         description = '<meta property="og:description" content="Zulip comes with over'
-        self._test(url, [title, description])
+        self._test(url, [title, description, get_canonical_url(url)])
 
         # Test category pages
         for category in CATEGORIES:
@@ -392,12 +456,12 @@ class DocPageTest(ZulipTestCase):
             else:
                 title = f"<title>{CATEGORIES[category]} tools | Zulip integrations</title>"
                 og_title = f'<meta property="og:title" content="{CATEGORIES[category]} tools | Zulip integrations" />'
-            self._test(url, [title, og_title, og_description])
+            self._test(url, [title, og_title, og_description, get_canonical_url(url)])
 
         # Test integrations index page
         url = "/integrations/"
         og_title = '<meta property="og:title" content="Zulip integrations" />'
-        self._test(url, [og_title, og_description])
+        self._test(url, [og_title, og_description, get_canonical_url(url)])
 
     def test_integration_404s(self) -> None:
         # We don't need to test all the pages for 404
@@ -695,6 +759,14 @@ class PrivacyTermsTest(ZulipTestCase):
             response = self.client_get("/policies/")
         self.assert_in_success_response(["Terms and policies"], response)
 
+        # Test that canonical URL points to zulip.com
+        self.assert_in_success_response([get_canonical_url("/policies/")], response)
+
+        # We don't add a rel-canonical link to self-hosted server policies docs.
+        with self.settings(POLICIES_DIRECTORY="corporate/policies", CORPORATE_ENABLED=False):
+            response = self.client_get("/policies/")
+        self.assert_not_in_success_response([get_canonical_url("/policies/")], response)
+
     def test_custom_terms_of_service_template(self) -> None:
         not_configured_message = "This server is an installation"
         with self.settings(POLICIES_DIRECTORY="zerver/policies_absent"):
@@ -704,6 +776,8 @@ class PrivacyTermsTest(ZulipTestCase):
         with self.settings(POLICIES_DIRECTORY="zerver/policies_minimal"):
             response = self.client_get("/policies/terms")
         self.assert_in_success_response(["These are the custom terms and conditions."], response)
+        # Test that canonical URL points to zulip.com
+        self.assert_in_success_response([get_canonical_url("/policies/terms")], response)
 
         with self.settings(POLICIES_DIRECTORY="corporate/policies"):
             response = self.client_get("/policies/terms")

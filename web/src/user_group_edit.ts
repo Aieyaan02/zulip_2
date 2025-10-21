@@ -157,7 +157,7 @@ function update_add_members_elements(group: UserGroup): void {
         ".edit_members_for_user_group .add_members_container",
     );
 
-    if (current_user.is_guest || realm.realm_is_zephyr_mirror_realm) {
+    if (current_user.is_guest) {
         // For guest users, we just hide the add_members feature.
         $add_members_container.hide();
         return;
@@ -1257,7 +1257,7 @@ function display_membership_toggle_spinner($group_row: JQuery): void {
     $group_row.find(".check").removeClass("join_leave_button");
 
     /* Hide the tick. */
-    const $tick = $group_row.find("svg");
+    const $tick = $group_row.find(".sub-unsub-icon");
     $tick.addClass("hide");
 
     /* Add a spinner to show the request is in process. */
@@ -1271,7 +1271,7 @@ function hide_membership_toggle_spinner($group_row: JQuery): void {
     $group_row.find(".check").addClass("join_leave_button");
 
     /* Show the tick. */
-    const $tick = $group_row.find("svg");
+    const $tick = $group_row.find(".sub-unsub-icon");
     $tick.removeClass("hide");
 
     /* Destroy the spinner. */

@@ -16,7 +16,8 @@ import tseslint from "typescript-eslint";
 
 const compat = new FlatCompat({baseDirectory: import.meta.dirname});
 
-export default defineConfig(
+/** @type {import("eslint").Linter.Config[]} */
+export const config = defineConfig(
     {
         // This is intended for generated files and vendored third-party files.
         // For our source code, instead of adding files here, consider using
@@ -329,4 +330,14 @@ export default defineConfig(
             "import/unambiguous": "off",
         },
     },
+    {
+        files: ["starlight_help/src/content/include/*"],
+        rules: {
+            // We need to turn off this rule since we want import statements
+            // to be easily copy-paste-able between content/include and
+            // content/docs.
+            "import/no-useless-path-segments": "off",
+        },
+    },
 );
+export default config;

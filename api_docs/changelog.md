@@ -20,6 +20,17 @@ format used by the Zulip server that they are interacting with.
 
 ## Changes in Zulip 12.0
 
+**Feature level 427**
+
+* [`POST /register`](/api/register-queue): `stream_creator_or_nobody`
+  value for `default_group_name` field in `server_supported_permission_settings`
+  object is renamed to `channel_creator`.
+
+**Feature level 426**
+
+* [`POST /register`](/api/register-queue): Removed the
+  `realm_is_zephyr_mirror_realm` property from the response.
+
 Feature levels 421-424 reserved for future use in 11.x maintenance
 releases.
 
@@ -855,7 +866,7 @@ deactivated groups.
 
 **Feature level 336**
 
-* [Markdown message formatting](/api/message-formatting#image-previews): Added
+* [Markdown message formatting](/api/message-formatting#images): Added
   `data-original-content-type` attribute to convey the type of the original
   image, and optional `data-transcoded-image` attribute for images with formats
   which are not widely supported by browsers.
@@ -1424,7 +1435,7 @@ deactivated groups.
 **Feature level 287**
 
 * [Markdown message
-  formatting](/api/message-formatting#image-previews): Added
+  formatting](/api/message-formatting#images): Added
   `data-original-dimensions` attributes to placeholder images
   (`image-loading-placeholder`), containing the dimensions of the
   original image. This change was also backported to the Zulip 9.x
@@ -1500,7 +1511,7 @@ releases.
 **Feature level 278**
 
 * [Markdown message
-  formatting](/api/message-formatting#image-previews): Added
+  formatting](/api/message-formatting#images): Added
   `data-original-dimensions` attributes to placeholder images
   (`image-loading-placeholder`), containing the dimensions of the
   original image. Backported change from feature level 287.
@@ -1513,7 +1524,7 @@ No changes; feature level used for Zulip 9.0 release.
 
 **Feature level 276**
 
-* [Markdown message formatting](/api/message-formatting#image-previews):
+* [Markdown message formatting](/api/message-formatting#images):
   Image preview elements not contain a `data-original-dimensions`
   attribute containing the dimensions of the original image.
 
